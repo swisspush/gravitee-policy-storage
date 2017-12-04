@@ -1,10 +1,12 @@
 {
   "type" : "object",
-  "id" : "urn:jsonschema:io:gravitee:policy:JsonValidationPolicyConfiguration",
+  "id" : "urn:jsonschema:io:gravitee:policy:storage:StoragePolicyConfiguration",
   "properties" : {
     "storage" : {
+      "title": "Storage",
       "description": "The storage name as configured in the storage service",
-      "type" : "string"
+      "type" : "string",
+      "default" : "default"
     }
   }
 }

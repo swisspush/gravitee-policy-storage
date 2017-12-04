@@ -62,11 +62,11 @@ public class StorageInvoker implements Invoker {
 
         ProxyConnection proxyConnection = new ProxyConnection() {
             private Handler<ProxyResponse> responseHandler;
-            private Buffer requestData = Buffer.buffer(head);
+            private io.vertx.core.buffer.Buffer requestData = requestBuffer(head);
 
             @Override
             public WriteStream<Buffer> write(Buffer content) {
-                requestData.appendBuffer(content);
+                requestData.appendBuffer(vertxBuffer(content));
                 return this;
             }
 
@@ -74,16 +74,19 @@ public class StorageInvoker implements Invoker {
             public void end() {
                 // Perform the request once all request data has been received
                 executionContext.getComponent(Vertx.class).eventBus()
-                    .send(storageAddress, vertxBuffer(requestData), (AsyncResult<Message<io.vertx.core.buffer.Buffer>> message) -> {
+                    .send(storageAddress, requestData, (AsyncResult<Message<io.vertx.core.buffer.Buffer>> message) -> {
                         io.vertx.core.buffer.Buffer responseData = message.result().body();
                         int headerLength = responseData.getInt(0);
                         final JsonObject head = new JsonObject(responseData.getString(4, headerLength+4));
                         HttpHeaders headers = new HttpHeaders();
                         head.getJsonArray("headers").forEach( (headerObject) -> {
                             String key = ((JsonArray)headerObject).getString(0);
-                            String value = ((JsonArray)headerObject).getString(0);
+                            String value = ((JsonArray)headerObject).getString(1);
                             headers.add(key, value);
                         });
+                        if(!headers.containsKey("Content-Length")) {
+                            headers.add("Content-Length", "" + (responseData.length() - headerLength - 4));
+                        }
 
                         responseHandler.handle(new ProxyResponse() {
                             private Handler<Buffer> bodyHandler;
@@ -145,6 +148,8 @@ public class StorageInvoker implements Invoker {
         stream
                 .bodyHandler(proxyConnection::write)
                 .endHandler(aVoid -> proxyConnection.end());
+
+        connectionHandler.handle(proxyConnection);
 
         // Resume the incoming request to handle content and end
         serverRequest.resume();

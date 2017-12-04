@@ -34,7 +34,9 @@ public class StoragePolicy {
 
     @OnRequest
     public void onRequest(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
-        executionContext.setAttribute(ExecutionContext.ATTR_INVOKER, new StorageInvoker(configuration.getStorage()));
+        executionContext.setAttribute(
+                ExecutionContext.ATTR_INVOKER,
+                new StorageInvoker("io.gravitee.gateway.services.storage."+configuration.getStorage()));
         policyChain.doNext(request, response);
     }
 
