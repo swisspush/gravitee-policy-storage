@@ -1,4 +1,4 @@
-= Simple Gravitee Policy
+= Rest Storage Gravitee Policy
 
 ifdef::env-github[]
 image:https://ci.gravitee.io/buildStatus/icon?job=gravitee-io/gravitee-policy-storage/master["Build status", link="https://ci.gravitee.io/job/gravitee-io/job/gravitee-policy-storage/"]
